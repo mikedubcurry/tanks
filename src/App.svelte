@@ -1,139 +1,183 @@
 <script>
-    import { onMount } from "svelte";
+	import { onMount } from 'svelte';
 
-    let power = 50;
-    let angle = 90;
-    let firing = false;
+	let power = 15;
+	let angle = 45;
+	let firing = false;
+	const gravity = 0.4;
 
-    let width = window.innerWidth - 50;
-    let height = window.innerHeight - 250;
-    let canvas;
+	let width = window.innerWidth - 50;
+	let height = window.innerHeight - 250;
+	let canvas;
 
-    let xPos = 50;
-    let yPos = height - 41;
+	let xPos = 50;
+	let yPos = height - 41;
 
-    let pjX = xPos + 15;
-    let pjY = yPos;
+	let pjX = xPos + 15;
+	let pjY = yPos;
+	let velX = 0;
+	let velY = 0;
 
-    onMount(() => {
-        const ctx = canvas.getContext("2d");
-        let frame = requestAnimationFrame(loop);
+	let craters = [];
 
-        function loop(t) {
-            frame = requestAnimationFrame(loop);
-            // draw bg
-            ctx.fillStyle = "#cccccc";
-            ctx.fillRect(0, 0, width, height);
-            // draw ground
-            ctx.fillStyle = "#614d28";
-            ctx.fillRect(0, height - 30, width, height);
+	onMount(() => {
+		const ctx = canvas.getContext('2d');
+		let frame = requestAnimationFrame(loop);
 
-            // if firing, draw projectile
-            if (firing) {
-                ctx.fillStyle = "#334444";
-                // ctx.fillStyle = "#fff";
-                ctx.fillRect(
-                    angle > 90 ? (pjX -= 8) : (pjX += 8),
-                    angle > 90
-                        ? (pjY += Math.tan(convertToRadians(angle + 180)) * 8)
-                        : (pjY += Math.tan(-convertToRadians(angle)) * 8),
-                    4,
-                    4
-                );
-            }
-            // draw tank body
-            ctx.fillStyle = "#1c4623";
-            ctx.fillRect(xPos, yPos, 30, 10);
-            // translate context to tank
-            ctx.translate(xPos + 20, yPos + 4);
-            // rotate to current turret angle
-            ctx.rotate(-convertToRadians(angle));
+		function loop(t) {
+			frame = requestAnimationFrame(loop);
 
-            // draw turret
-            ctx.fillRect(0, -5, 20, 3);
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
+			drawScene(ctx);
 
-            // draw treads
-            ctx.fillStyle = "#000000";
-            ctx.fillRect(xPos - 2, yPos + 9, 34, 2);
-        }
+			drawTrajectory(ctx, firing);
+			drawCraters(ctx);
+			drawTank(ctx, xPos, yPos, angle);
+		}
 
-        return () => {
-            cancelAnimationFrame(frame);
-        };
-    });
+		return () => {
+			cancelAnimationFrame(frame);
+		};
+	});
 
-    function convertToRadians(degree) {
-        return degree * (Math.PI / 180);
-    }
+	// canvas fns
+	function drawScene(ctx) {
+		// draw bg
+		ctx.fillStyle = '#cccccc';
+		ctx.fillRect(0, 0, width, height);
+		// draw ground
+		ctx.fillStyle = '#614d28';
+		ctx.fillRect(0, height - 30, width, height);
+	}
 
-    function handleKeyPress(e) {
-        if (e.key === "ArrowRight") {
-            xPos += 2;
-            if (xPos + 30 > width) {
-                xPos = width - 30;
-            }
-        } else if (e.key === "ArrowLeft") {
-            xPos -= 2;
-            if (xPos < 0) {
-                xPos = 0;
-            }
-        } else if (e.key === "ArrowUp") {
-            angle += 1;
-            if (angle > 180) {
-                angle = 180;
-            }
-        } else if (e.key === "ArrowDown") {
-            angle -= 1;
-            if (angle < 0) {
-                angle = 0;
-            }
-        } else if (e.key === "Enter" || e.key === " ") {
-            firing = true;
-            console.log("FIRING!");
-            pjX = xPos + 15;
-            pjY = yPos;
-        }
-    }
+	function drawTank(ctx, x, y, angle) {
+		// draw tank body
+		ctx.fillStyle = '#1c4623';
+		ctx.fillRect(x, y, 30, 10);
+		// translate context to tank
+		ctx.translate(x + 20, y + 4);
+		// rotate to current turret angle
+		ctx.rotate(-convertToRadians(angle));
+
+		// draw turret
+		ctx.fillRect(0, -5, 20, 3);
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+		// draw treads
+		ctx.fillStyle = '#000000';
+		ctx.fillRect(x - 2, y + 9, 34, 2);
+	}
+
+	function drawTrajectory(ctx, firing) {
+		// if firing, draw projectile
+		if (firing) {
+			drawProjectile(ctx);
+		}
+	}
+
+	function drawProjectile(ctx) {
+		if (pjY <= height - 30) {
+			ctx.fillStyle = '#334444';
+			velY += gravity;
+			let x = (pjX += velX);
+			let y = (pjY += velY);
+
+			ctx.fillRect(x, y, 4, 4);
+		} else {
+			craters = [...craters, { x: pjX, y: height - 30 }];
+			// craters.push({ x: pjX, y: height - 30 });
+			if (craters.length > 5) {
+				craters = craters.slice(1);
+			}
+			firing = false;
+			velY = 0;
+			velX = 0;
+		}
+	}
+
+	function drawCraters(ctx) {
+		ctx.fillStyle = '#cccccc';
+		craters.forEach(({ x, y }) => {
+			ctx.moveTo(x, y);
+			ctx.arc(x, y, 7, 0, Math.PI * 2);
+		});
+		ctx.fill();
+	}
+
+	// util fns
+	function convertToRadians(degree) {
+		return degree * (Math.PI / 180);
+	}
+
+	function fire() {
+		firing = true;
+		pjX = xPos + 15;
+		pjY = yPos;
+
+		velX = power * Math.cos(convertToRadians(angle));
+		velY = power * -Math.sin(convertToRadians(angle));
+	}
+
+	// UI fns
+	function handleKeyPress(e) {
+		if (e.key === 'ArrowRight') {
+			xPos += 2;
+			if (xPos + 30 > width) {
+				xPos = width - 30;
+			}
+		} else if (e.key === 'ArrowLeft') {
+			xPos -= 2;
+			if (xPos < 0) {
+				xPos = 0;
+			}
+		} else if (e.key === 'ArrowUp') {
+			angle += 1;
+			if (angle > 180) {
+				angle = 180;
+			}
+		} else if (e.key === 'ArrowDown') {
+			angle -= 1;
+			if (angle < 0) {
+				angle = 0;
+			}
+		} else if (e.key === 'Enter' || e.key === ' ') {
+			fire();
+		}
+	}
 </script>
 
 <svelte:window on:keydown={handleKeyPress} />
 
 <main>
-    <section class="controls">
-        <button on:click={() => (xPos -= 5)}>Left</button>
-        <button on:click={() => (xPos += 5)}>Right</button>
-        <label for="power">Power</label>
-        <input type="range" name="power" id="power" min="1" max="100" bind:value={power} />
-        <label for="angle">Angle</label>
-        <input type="range" name="angle" id="angle" min="0" max="180" bind:value={angle} />
-        <button
-            on:click={() => {
-                console.log("FIRING!", "angle: ", angle, "power: ", power);
-            }}>FIRE!</button
-        >
-    </section>
-    <canvas class="battleground" bind:this={canvas} {width} {height} />
+	<section class="controls">
+		<button on:click={() => (xPos -= 5)}>Left</button>
+		<button on:click={() => (xPos += 5)}>Right</button>
+		<label for="power">Power</label>
+		<input type="range" name="power" id="power" min="5" max="20" bind:value={power} />
+		<label for="angle">Angle</label>
+		<input type="range" name="angle" id="angle" min="0" max="180" bind:value={angle} />
+		<button on:click={fire}>FIRE!</button>
+	</section>
+	<canvas class="battleground" bind:this={canvas} {width} {height} />
 </main>
 
 <style>
-    :global(body) {
-        height: 100vh;
-    }
-    :global(*) {
-        padding: 0;
-        margin: 0;
-        box-sizing: border-box;
-    }
+	:global(body) {
+		height: 100vh;
+	}
+	:global(*) {
+		padding: 0;
+		margin: 0;
+		box-sizing: border-box;
+	}
 
-    main {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-around;
-        align-items: center;
-    }
-    /* 
+	main {
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+		align-items: center;
+	}
+	/* 
 	.battleground {
 		background-color: #1c4623;
 	} */

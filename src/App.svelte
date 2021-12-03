@@ -1,6 +1,10 @@
 <script>
 	import { onMount } from 'svelte';
 
+	let gameOver = false;
+	let timeLeft = 60;
+	let score = 0;
+	let highScores = []
 	let power = 15;
 	let angle = 45;
 	let firing = false;
@@ -25,6 +29,17 @@
 
 	let craters = [];
 
+	let interval;
+
+	$: {
+		if (timeLeft === 0) {
+			if(score > 0) {
+				highScores = [...highScores, score].sort()
+			}
+			gameOver = true;
+		}
+	}
+
 	onMount(() => {
 		const ctx = canvas.getContext('2d');
 		let frame = requestAnimationFrame(loop);
@@ -35,7 +50,11 @@
 			drawWall(ctx);
 			drawCraters(ctx);
 			drawTank(ctx, xPos, yPos, angle);
-			frame = requestAnimationFrame(loop);
+			drawPowerMeter(ctx);
+			drawAngle(ctx);
+			drawScore(ctx);
+			drawTime(ctx);
+			if (!gameOver) frame = requestAnimationFrame(loop);
 		}
 
 		return () => {
@@ -98,6 +117,11 @@
 		} else {
 			if (pjX > targetX - 30 && pjX < targetX + 30) {
 				targetX = width + 15 - Math.floor((Math.random() * width) / 2);
+				if (score === 0) {
+					score += 5;
+				} else {
+					score += 6;
+				}
 			}
 			craters = [...craters, { x: pjX, y: height - 30 }];
 			pjX = -Infinity;
@@ -136,6 +160,33 @@
 		}
 	}
 
+	function drawPowerMeter(ctx) {
+		ctx.beginPath();
+		ctx.strokeStyle = '#000';
+		ctx.lineWidth = 2;
+		ctx.rect(10, 10, 100, 8);
+		ctx.stroke();
+		ctx.fillStyle = '#00ff00';
+		ctx.fillRect(11, 11, (power - 5) * 5 - 2, 6);
+	}
+
+	function drawAngle(ctx) {
+		// ctx.moveTo(120, 10)
+		ctx.fillStyle = '#000000';
+		ctx.font = '24px sans serif';
+		ctx.fillText(`${angle}°`, 120, 20);
+	}
+
+	function drawScore(ctx) {
+		ctx.fillStyle = '#000000';
+		ctx.font = '24px sans serif';
+		ctx.fillText(`Score: ${score}`, width - 250, 20);
+	}
+
+	function drawTime(ctx) {
+		ctx.fillText(`Time: ${timeLeft} s`, width - 130, 20);
+	}
+
 	// util fns
 	function convertToRadians(degree) {
 		return degree * (Math.PI / 180);
@@ -146,7 +197,15 @@
 		pjX = xPos + 15;
 		pjY = yPos;
 
-		velX = parseInt(power * Math.cos(convertToRadians(angle)));
+		if (score > 0) {
+			score -= 1;
+		}
+
+		if (angle === 90) {
+			velX = 0;
+		} else {
+			velX = parseInt(power * Math.cos(convertToRadians(angle)));
+		}
 		velY = parseInt(power * -Math.sin(convertToRadians(angle)));
 	}
 
@@ -188,12 +247,28 @@
 			}
 		}
 	}
+
+	function startGame() {
+		timeLeft = 60
+		score = 0
+		function startTime() {
+			let t = setTimeout(() => {
+				timeLeft -= 1
+				clearTimeout(t)
+				startTime()
+			}, 1500)
+		}
+		startTime()
+		// interval = setInterval(() => {
+		// 	timeLeft -= 1;
+		// }, 1000);
+	}
 </script>
 
 <svelte:window on:keydown={handleKeyPress} />
 
 <main>
-	<section class="controls">
+	<!-- <section class="controls">
 		<button on:click={() => (xPos -= 5)}>Left</button>
 		<button on:click={() => (xPos += 5)}>Right</button>
 		<label for="power">Power</label>
@@ -201,8 +276,34 @@
 		<label for="angle">Angle</label>
 		<input type="range" name="angle" id="angle" min="0" max="180" bind:value={angle} />
 		<button on:click={fire}>FIRE!</button>
+	</section> -->
+	<canvas class="battleground" bind:this={canvas} {width} {height}
+		>Your browser doesn't support HTML5 canvas element. :(</canvas
+	>
+	<section>
+		<h1>HTML5 Canvas Tank</h1>
+		<button on:click={startGame}>Start</button>
+		<h2>Controls:</h2>
+		<ul>
+			<li>use left and right arrow keys to move the tank left and right *</li>
+			<li>use up and down arrow keys to adjust angle of gun *</li>
+			<li>press space or enter to fire a shot</li>
+			<li>use page-up and page-down to adjust the power</li>
+			<li>each target is worth 5 points, and each bullet costs you 1 point</li>
+			<li>you have 60 seconds to hit as many targets as you can</li>
+			<li>you can practice as long as you want, when you're ready, press "Start"!</li>
+		</ul>
 	</section>
-	<canvas class="battleground" bind:this={canvas} {width} {height} />
+	<section>
+		<h2>High Scores</h2>
+		<ol>
+			{#each highScores as scr}
+				<li>{scr}</li>
+				{:else}
+					<p>Press Start to play and score higher than 0 to make it on the list!</p>
+			{/each}
+		</ol>
+	</section>
 </main>
 
 <style>

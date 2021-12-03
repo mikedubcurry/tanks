@@ -4,7 +4,7 @@
 	let gameOver = false;
 	let timeLeft = 60;
 	let score = 0;
-	let highScores = []
+	let highScores = [];
 	let power = 15;
 	let angle = 45;
 	let firing = false;
@@ -30,16 +30,21 @@
 	let craters = [];
 
 	let interval;
+	getHighScores();
 
 	$: {
 		if (timeLeft === 0) {
-			if(score > 0) {
-				highScores = [...highScores, score].sort()
+			if (score > 0) {
+				// highScores = [...highScores, score].sort();
+				highScores.push(score);
+				highScores.sort();
+				highScores.reverse();
+				highScores = highScores.slice(0, 5);
+				localStorage.setItem('tanksHighScores', JSON.stringify(highScores));
 			}
 			gameOver = true;
 		}
 	}
-
 	onMount(() => {
 		const ctx = canvas.getContext('2d');
 		let frame = requestAnimationFrame(loop);
@@ -184,6 +189,9 @@
 	}
 
 	function drawTime(ctx) {
+		if(timeLeft < 20) {
+			ctx.fillStyle = "#ff0000"
+		}
 		ctx.fillText(`Time: ${timeLeft} s`, width - 130, 20);
 	}
 
@@ -207,6 +215,13 @@
 			velX = parseInt(power * Math.cos(convertToRadians(angle)));
 		}
 		velY = parseInt(power * -Math.sin(convertToRadians(angle)));
+	}
+
+	function getHighScores() {
+		let scores = localStorage.getItem('tanksHighScores');
+		if (scores) {
+			highScores = JSON.parse(scores);
+		}
 	}
 
 	// UI fns
@@ -249,40 +264,35 @@
 	}
 
 	function startGame() {
-		timeLeft = 60
-		score = 0
+		timeLeft = 60;
+		score = 0;
 		function startTime() {
 			let t = setTimeout(() => {
-				timeLeft -= 1
-				clearTimeout(t)
-				startTime()
-			}, 1500)
+				timeLeft -= 1;
+				clearTimeout(t);
+				startTime();
+			}, 1500);
 		}
-		startTime()
+		startTime();
 		// interval = setInterval(() => {
 		// 	timeLeft -= 1;
 		// }, 1000);
 	}
 </script>
 
-<svelte:window on:keydown={handleKeyPress} />
+<svelte:window on:keydown|preventDefault={handleKeyPress} />
 
+<div>
+	<h1>HTML5 Canvas Tank</h1>
+
+	<button on:click={startGame}>Start</button>
+</div>
 <main>
-	<!-- <section class="controls">
-		<button on:click={() => (xPos -= 5)}>Left</button>
-		<button on:click={() => (xPos += 5)}>Right</button>
-		<label for="power">Power</label>
-		<input type="range" name="power" id="power" min="5" max="25" bind:value={power} />
-		<label for="angle">Angle</label>
-		<input type="range" name="angle" id="angle" min="0" max="180" bind:value={angle} />
-		<button on:click={fire}>FIRE!</button>
-	</section> -->
 	<canvas class="battleground" bind:this={canvas} {width} {height}
 		>Your browser doesn't support HTML5 canvas element. :(</canvas
 	>
-	<section>
-		<h1>HTML5 Canvas Tank</h1>
-		<button on:click={startGame}>Start</button>
+
+	<section class="controls">
 		<h2>Controls:</h2>
 		<ul>
 			<li>use left and right arrow keys to move the tank left and right *</li>
@@ -294,13 +304,13 @@
 			<li>you can practice as long as you want, when you're ready, press "Start"!</li>
 		</ul>
 	</section>
-	<section>
+	<section class="highscores">
 		<h2>High Scores</h2>
 		<ol>
 			{#each highScores as scr}
 				<li>{scr}</li>
-				{:else}
-					<p>Press Start to play and score higher than 0 to make it on the list!</p>
+			{:else}
+				<p>Press Start to play and score higher than 0 to make it on the list!</p>
 			{/each}
 		</ol>
 	</section>
@@ -318,9 +328,52 @@
 
 	main {
 		height: 100%;
+		display: grid;
+		grid-template-columns: 3fr 1fr;
+		grid-template-rows: 80% auto;
+	}
+
+	canvas {
+		grid-column: 1 / span 2;
+		justify-self: center;
+		align-self: flex-start;
+	}
+	div {
 		display: flex;
 		flex-direction: column;
-		justify-content: space-around;
 		align-items: center;
+		justify-content: center;
+		padding: 1.5rem;
+	}
+	button {
+		border-radius: 14px;
+		padding: 0.2rem 1.5rem;
+		border: none;
+		background-color: #1c4623;
+		color: white;
+		font-size: 1.5rem;
+		transition: all 0.3s ease;
+	}
+	button:hover {
+		background-color: #327d3e;
+	}
+	button:active {
+		background-color: #3a6541;
+	}
+	.controls {
+		padding: 0 2rem;
+		grid-column: 1;
+		grid-row: 2;
+		justify-self: left;
+		align-self: center;
+	}
+	.highscores {
+		grid-column: 2;
+		grid-row: 2;
+		justify-self: left;
+		align-self: stretch;
+	}
+	li {
+		margin-bottom: 0.5rem;
 	}
 </style>

@@ -6,8 +6,8 @@
     let firing = false;
     const gravity = 0.4;
 
-    let width = parseInt(window.innerWidth / 2);
-    let height = parseInt(window.innerHeight / 3);
+    let width = parseInt(window.innerWidth - 100);
+    let height = parseInt(window.innerHeight - 250);
     let canvas;
 
     let xPos = 50;
@@ -103,7 +103,6 @@
     }
 
     function drawCraters(ctx) {
-        console.log(craters);
         if (craters.length > 10) {
             craters = craters.slice(1);
         }
@@ -171,7 +170,7 @@
         <button on:click={() => (xPos -= 5)}>Left</button>
         <button on:click={() => (xPos += 5)}>Right</button>
         <label for="power">Power</label>
-        <input type="range" name="power" id="power" min="5" max="20" bind:value={power} />
+        <input type="range" name="power" id="power" min="5" max="25" bind:value={power} />
         <label for="angle">Angle</label>
         <input type="range" name="angle" id="angle" min="0" max="180" bind:value={angle} />
         <button on:click={fire}>FIRE!</button>

@@ -29,7 +29,6 @@
 
 	let craters = [];
 
-	let interval;
 	getHighScores();
 
 	$: {
@@ -37,9 +36,8 @@
 			if (score > 0) {
 				// highScores = [...highScores, score].sort();
 				highScores.push(score);
-				highScores.sort();
-				highScores.reverse();
-				highScores = highScores.slice(0, 5);
+				let scores = highScores.sort().reverse();
+				highScores = scores.slice(0, 5);
 				localStorage.setItem('tanksHighScores', JSON.stringify(highScores));
 			}
 			gameOver = true;
@@ -189,8 +187,8 @@
 	}
 
 	function drawTime(ctx) {
-		if(timeLeft < 20) {
-			ctx.fillStyle = "#ff0000"
+		if (timeLeft < 20) {
+			ctx.fillStyle = '#ff0000';
 		}
 		ctx.fillText(`Time: ${timeLeft} s`, width - 130, 20);
 	}
@@ -218,9 +216,10 @@
 	}
 
 	function getHighScores() {
-		let scores = localStorage.getItem('tanksHighScores');
+		let scores = JSON.parse(localStorage.getItem('tanksHighScores'));
+		scores.sort().reverse()
 		if (scores) {
-			highScores = JSON.parse(scores);
+			highScores = scores;
 		}
 	}
 
@@ -264,6 +263,7 @@
 	}
 
 	function startGame() {
+		gameOver = false
 		timeLeft = 60;
 		score = 0;
 		function startTime() {

@@ -38,9 +38,33 @@
 	];
 </script>
 
-<section>
+<section id="#about">
 	<h2>All Games</h2>
-	{#each games as game}
-		<Card {...game} />
-	{/each}
+	<div class="games">
+		{#each games as game}
+			<Card {...game} />
+		{/each}
+	</div>
 </section>
+
+
+<style>
+	h2 {
+		text-align: center;
+		font-family: 'Courier New', Courier, monospace;
+		font-size: 28px;
+		color: #555;
+		text-shadow: 2px -1px 0 salmon;
+		padding: 2rem 0;
+	}
+	section {
+		max-width: 1024px;
+		margin: 0 auto;
+	}
+	.games {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+		gap: 20px;
+		justify-items: center;
+	}
+</style>

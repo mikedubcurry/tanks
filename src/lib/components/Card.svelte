@@ -18,9 +18,19 @@
 <style>
 	.card {
 		max-width: 400px;
-    /* min-height: 456px; */
+		/* min-height: 456px; */
 		background-color: salmon;
-		border-radius: 14px;
+		/* border-radius: 14px; */
+		clip-path: polygon(
+			20px 0,
+			calc(100% - 20px) 0,
+			100% 20px,
+			100% calc(100% - 20px),
+			calc(100% - 20px) 100%,
+			20px 100%,
+			0 calc(100% - 20px),
+			0 20px
+		);
 		padding: 28px;
 		transition: background-color 0.4s ease, transform 0.3s ease;
 	}
@@ -34,11 +44,11 @@
 	}
 
 	img {
-    height: 300px;
+		height: 300px;
 		width: 100%;
 		object-fit: cover;
 		object-position: left;
-    margin: 1rem 0;
+		margin: 1rem 0;
 	}
 
 	h3 {

@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	console.log($page.path);
 </script>
 
 <nav>
 	<ul>
 		<li><a class:active={$page.path === '/'} href="/">All Games</a></li>
-		<li><a class:active={$page.path === '/leaderboards'} href="/leaderboards">Leaderboards</a></li>
+		<li><a class:active={$page.path === '/leaderboard'} href="/leaderboard">High Scores</a></li>
 		<li><a class:active={$page.path === '/new-games'} href="/new-games">New Games</a></li>
 		<li><a class:active={$page.path === '/about'} href="/about">About</a></li>
 	</ul>
@@ -16,6 +15,7 @@
 
 	nav {
 		/* height: 10vh; */
+		width: 100%;
     padding: 1rem 0;
 	}
 

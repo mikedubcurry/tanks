@@ -17,6 +17,10 @@
 		padding: 0;
 		box-sizing: border-box;
 	}
+	main {
+		background-color: rgb(142, 189, 166);
+		min-height: 85vh;
+	}
 	h1 {
 		font-family: 'Courier New', Courier, monospace;
 		padding: 1rem 0.5rem;
@@ -27,9 +31,14 @@
 	}
 	a {
 		text-decoration: none;
-		color: saddlebrown;
+		color: #555;
 	}
 	header {
 		background-color: antiquewhite;
+		height: 15vh;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: space-evenly;
 	}
 </style>

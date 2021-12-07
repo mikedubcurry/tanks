@@ -216,7 +216,7 @@
 	}
 
 	function getHighScores() {
-		let scores = JSON.parse(localStorage.getItem('tanksHighScores'));
+		let scores = JSON.parse(localStorage.getItem('tanksHighScores')) || [];
 		scores.sort().reverse()
 		if (scores) {
 			highScores = scores;

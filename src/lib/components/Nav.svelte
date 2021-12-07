@@ -12,11 +12,10 @@
 </nav>
 
 <style>
-
 	nav {
 		/* height: 10vh; */
 		width: 100%;
-    padding: 1rem 0;
+		padding: 1rem 0;
 	}
 
 	ul {
